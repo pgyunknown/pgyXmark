@@ -7,14 +7,27 @@ import useAuth from "./hooks/useAuth";
 import Auth from "./components/Auth";
 
 export default function App() {
-  // 🔐 Auth (ALWAYS called)
-  const { user, loading, signIn, signOut } = useAuth();
+  // 🔐 Auth
+  const { user, loading, signIn, signUp, signOut } = useAuth();
 
-  // 📂 Categories (ALWAYS called)
+  // ⏳ While auth state is loading
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-950 text-slate-300">
+        Loading...
+      </div>
+    );
+  }
+
+  // 🔑 Not logged in → show Auth screen
+  if (!user) {
+    return <Auth onLogin={signIn} onSignup={signUp} />;
+  }
+
+  // 📂 Categories (localStorage)
   const { categories, addCategory, removeCategory } = useCategories();
 
-  // 🔖 Bookmarks (ALWAYS called)
-  // user can be null — hook must still run
+  // 🔖 Bookmarks (Supabase, user-bound)
   const {
     addBookmark,
     getByCategory,
@@ -23,30 +36,15 @@ export default function App() {
     removeBookmarksByCategory,
   } = useBookmarks(user);
 
-  // UI state (ALWAYS called)
   const [activeCategory, setActiveCategory] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Auto-select first category
   useEffect(() => {
-    if (user && !activeCategory && categories.length > 0) {
+    if (!activeCategory && categories.length > 0) {
       setActiveCategory(categories[0]);
     }
-  }, [user, categories, activeCategory]);
-
-  // 🔴 NOW we can return conditionally (safe)
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-slate-950 text-slate-400">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Auth onLogin={signIn} />;
-  }
+  }, [categories, activeCategory]);
 
   async function handleDeleteCategory(category) {
     const ok = window.confirm(
@@ -56,11 +54,13 @@ export default function App() {
 
     await removeBookmarksByCategory(category);
     removeCategory(category);
-    setActiveCategory(null);
+
+    setActiveCategory((prev) => (prev === category ? null : prev));
   }
 
   return (
     <div className="h-screen flex bg-slate-950 text-slate-100 overflow-hidden">
+      {/* Sidebar */}
       <Sidebar
         categories={categories}
         activeCategory={activeCategory}
@@ -71,8 +71,9 @@ export default function App() {
         onClose={() => setIsSidebarOpen(false)}
       />
 
+      {/* Main Area */}
       <div className="flex-1 flex flex-col">
-        {/* Mobile top bar */}
+        {/* Mobile Top Bar */}
         <div className="md:hidden flex items-center px-4 py-3 border-b border-slate-800">
           <button
             onClick={() => setIsSidebarOpen(true)}
@@ -90,6 +91,7 @@ export default function App() {
           </button>
         </div>
 
+        {/* Content */}
         {activeCategory ? (
           <BookmarkPanel
             activeCategory={activeCategory}

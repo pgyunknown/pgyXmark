@@ -7,34 +7,7 @@ import useAuth from "./hooks/useAuth";
 import Auth from "./components/Auth";
 
 export default function App() {
-  // 🔐 Auth (ALWAYS called)
-  const { user, loading, signIn, signOut } = useAuth();
-
-  // 📂 Categories (ALWAYS called)
-  const { categories, addCategory, removeCategory } = useCategories();
-
-  // 🔖 Bookmarks (ALWAYS called)
-  // user can be null — hook must still run
-  const {
-    addBookmark,
-    getByCategory,
-    removeBookmark,
-    updateNotes,
-    removeBookmarksByCategory,
-  } = useBookmarks(user);
-
-  // UI state (ALWAYS called)
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Auto-select first category
-  useEffect(() => {
-    if (user && !activeCategory && categories.length > 0) {
-      setActiveCategory(categories[0]);
-    }
-  }, [user, categories, activeCategory]);
-
-  // 🔴 NOW we can return conditionally (safe)
+  const { user, loading, signIn, signUp, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -45,8 +18,26 @@ export default function App() {
   }
 
   if (!user) {
-    return <Auth onLogin={signIn} />;
+    return <Auth onLogin={signIn} onSignup={signUp} />;
   }
+
+  const { categories, addCategory, removeCategory } = useCategories();
+  const {
+    addBookmark,
+    getByCategory,
+    removeBookmark,
+    updateNotes,
+    removeBookmarksByCategory,
+  } = useBookmarks(user);
+
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!activeCategory && categories.length > 0) {
+      setActiveCategory(categories[0]);
+    }
+  }, [categories, activeCategory]);
 
   async function handleDeleteCategory(category) {
     const ok = window.confirm(
@@ -60,7 +51,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen flex bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="h-screen flex bg-slate-950 text-slate-100">
       <Sidebar
         categories={categories}
         activeCategory={activeCategory}
@@ -72,7 +63,6 @@ export default function App() {
       />
 
       <div className="flex-1 flex flex-col">
-        {/* Mobile top bar */}
         <div className="md:hidden flex items-center px-4 py-3 border-b border-slate-800">
           <button
             onClick={() => setIsSidebarOpen(true)}
