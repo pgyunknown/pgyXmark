@@ -1,11 +1,10 @@
 import { useState } from "react";
 import storage from "../storage";
 
-export default function BookmarkForm({ activeCategory, onAdd }) {
+export default function BookmarkForm({ category, onAdd }) {
   const [url, setUrl] = useState("");
   const [note, setNote] = useState("");
   const [tags, setTags] = useState("");
-  const [category, setCategory] = useState(activeCategory || "");
 
   const submit = async () => {
     if (!url || !category) return;
@@ -13,7 +12,7 @@ export default function BookmarkForm({ activeCategory, onAdd }) {
     const bookmark = {
       url,
       note,
-      category: category.trim().toLowerCase(),
+      category,
       tags: tags
         .split(",")
         .map((t) => t.trim())
@@ -37,28 +36,18 @@ export default function BookmarkForm({ activeCategory, onAdd }) {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
       />
-
-      <input
-        className="w-full border p-2 rounded"
-        placeholder="Category"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-      />
-
       <input
         className="w-full border p-2 rounded"
         placeholder="Note (optional)"
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
-
       <input
         className="w-full border p-2 rounded"
         placeholder="Tags (comma separated)"
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
-
       <button
         onClick={submit}
         className="bg-black text-white px-4 py-2 rounded"

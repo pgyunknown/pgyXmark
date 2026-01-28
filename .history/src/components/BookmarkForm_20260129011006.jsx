@@ -13,7 +13,7 @@ export default function BookmarkForm({ activeCategory, onAdd }) {
     const bookmark = {
       url,
       note,
-      category: category.trim().toLowerCase(),
+      category,
       tags: tags
         .split(",")
         .map((t) => t.trim())
